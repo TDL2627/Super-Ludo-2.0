@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Elemental Ludo</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#1b2450,#070a16 70%) fixed;color:#eef2ff;font:16px system-ui,sans-serif;overflow-x:hidden}
+body{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+button{font:inherit;color:inherit;min-height:44px;min-width:44px;border:0;border-radius:14px;background:#2a3566;padding:8px 14px;cursor:pointer}
+button:focus-visible{outline:3px solid #ffd54a;outline-offset:2px}
+.s0{--c:#e5412d}.s1{--c:#2e9e57}.s2{--c:#2a86e0}.s3{--c:#b8a9f2}
+#game{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:1000px;margin:0 auto}
+#board{position:relative;width:min(98vw,58dvh);aspect-ratio:1;background:#0e1430;border-radius:10px;box-shadow:0 0 24px #5a6cff55;flex:none}
+#board>*{position:absolute}
+#side{width:min(98vw,520px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+#bar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.chip{padding:4px 10px;border-radius:99px;background:#1a2244;border:2px solid var(--c);font-size:14px}
+.chip.on{background:#3a4688;box-shadow:0 0 10px #ffd54a;border-color:#ffd54a}
+#dice{width:88px;height:88px;font-size:56px;line-height:1;background:#f4f1e8;color:#222;border-radius:18px;padding:0}
+#dice:disabled{opacity:.55}#dice.rdy{box-shadow:0 0 0 4px #ffd54a,0 0 18px #ffd54a}
+#msg{min-height:3em;font-weight:600}
+#lg{font-size:13px;opacity:.85}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.base{border-radius:14px;background:linear-gradient(135deg,var(--c),#000a);width:40%;height:40%}
+.base.off{opacity:.2}
+.slot{border-radius:50%;background:#0006;transform:scale(.85)}
+.em{display:grid;place-items:center;font-size:calc(var(--u)*.7);opacity:.8}
+.c{background:#232c5c;border:1px solid #ffffff33;border-radius:4px;display:grid;place-items:center;font-size:calc(var(--u)*.55);color:#ffffffaa}
+.st{background:var(--c);color:#fff}.ln{background:var(--c);opacity:.8}
+.t-death{background:#1a0630;box-shadow:inset 0 0 0 2px #b04cff,0 0 6px #b04cff;color:#fff}
+.t-boost{background:#0aa7b5;color:#fff;font-weight:800}.t-star{background:#5a4600;color:#ffd54a;box-shadow:inset 0 0 8px #ffd54a}
+.t-shield{background:#14503a;border:2px solid #8a7a5a;color:#fff}
+.nexus{display:grid;place-items:center;font-size:calc(var(--u)*1.2);color:#fff;border-radius:8px;background:radial-gradient(#fff9,#0000 60%),conic-gradient(from -45deg,#2e9e57 0 25%,#2a86e0 0 50%,#b8a9f2 0 75%,#e5412d 0);box-shadow:0 0 16px #fff6}
+.tk{width:6.6667%;height:6.6667%;padding:0;min-width:0;min-height:0;border-radius:50%;border:2px solid #fff;background:radial-gradient(circle at 35% 30%,#fffa,var(--c) 70%);display:grid;place-items:center;font-size:calc(var(--u)*.5);transform:scale(.82);transition:left .3s,top .3s;z-index:5}
+.tk:disabled{color:inherit;opacity:1}.tk::before{content:"";position:absolute;inset:-8px;border-radius:50%}
+.tk.fin{transform:scale(.55)}.tk.sh::after{content:"🛡";position:absolute;right:-35%;top:-35%;font-size:.8em}
+.tk.go{z-index:9;box-shadow:0 0 0 3px #ffd54a,0 0 12px #ffd54a;animation:pl .6s infinite alternate}
+@keyframes pl{to{transform:scale(1)}}
+.fx{font-style:normal;font-size:calc(var(--u)*.5);animation:fx .6s forwards;pointer-events:none;z-index:20}
+@keyframes fx{to{transform:rotate(var(--a)) translateY(calc(var(--u)*-1.1));opacity:0}}
+.ov{position:fixed;inset:0;background:#070a16ee;display:flex;align-items:center;justify-content:center;overflow:auto;padding:12px;z-index:50}
+.card{background:#151c36;border-radius:20px;padding:18px;width:min(100%,440px);text-align:center;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 30px #5a6cff66}
+h1{margin:0;font-size:28px}.card p{margin:0;font-size:14px;text-align:left}
+#np{display:flex;gap:6px}#np button{flex:1}.sel{background:#5a6cff!important}
+.seat{border-left:8px solid var(--c)}
+#play,.big{background:#ffb300;color:#111;font-weight:800;font-size:18px}
+#wt{font-size:34px;font-weight:800;animation:pop .8s infinite alternate}
+@keyframes pop{to{transform:scale(1.12)}}
+@media (min-aspect-ratio:1/1){#game{flex-direction:row;align-items:flex-start;justify-content:center}#board{width:min(calc(100dvh - 24px),calc(100vw - 300px))}#side{width:270px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<main id="game">
+<div id="board" aria-label="Ludo board"></div>
+<div id="side">
+<button id="dice" aria-label="Roll dice" disabled>🎲</button>
+<div id="msg" role="status" aria-live="polite"></div>
+<div id="bar"></div>
+<div id="lg">☠ Chaos Rift · +2 Wind Boost · ★ Extra Roll · 🛡 Shield · ☆ Safe</div>
+<div class="row"><button id="rs">↻ Restart</button><button id="mn">☰ New Game</button><button id="sd" aria-label="Toggle sound">🔊</button></div>
+</div></main>
+
+<section id="menu" class="ov"><div class="card">
+<h1>🔥 Elemental Ludo 💧</h1><div>Fire · Earth · Water · Air</div>
+<div id="np" role="group" aria-label="Number of players"></div>
+<div id="sl" class="row" style="flex-direction:column"></div>
+<label class="row" style="min-height:44px;align-items:center"><input type="checkbox" id="st" checked style="width:24px;height:24px"> Special Tiles</label>
+<button id="play">▶ Play</button>
+<details><summary style="min-height:44px;line-height:44px">How to play</summary>
+<p>Roll a six to leave base. Move exactly the number rolled. A six rolls again; three sixes in a row lose the turn. Land on a rival (not on ☆ or a start square, not shielded) to send it home. Reach the Nexus with an exact roll. Special tiles trigger only when you <b>land</b> on them: ☠ Chaos Rift sends that token home; +2 Wind Boost moves two more (skipped if it would overshoot, max 3 chained); ★ Elemental Star gives an extra roll; 🛡 Earth Guardian protects the token until it next moves. Keys: Space/R roll, 1–4 move token.</p></details>
+</div></section>
+
+<section id="win" class="ov" hidden><div class="card"><div id="wt"></div>
+<button id="pa" class="big">Play Again</button><button id="wm">Main Menu</button></div></section>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s),R=Math.random,U=100/15;
+const EL=[{n:'Fire',i:'🔥'},{n:'Earth',i:'🌿'},{n:'Water',i:'💧'},{n:'Air',i:'🌪️'}];
+// ---- Configuration: tile counts and limits ----
+const CFG={tiles:{death:4,boost:4,star:4,shield:4},chain:3,sixLimit:3};
+const TI={death:['☠','Chaos Rift'],boost:['+2','Wind Boost'],star:['★','Elemental Star'],shield:['🛡','Earth Guardian']};
+const FIN=56,OFF=[0,13,26,39],BASE=[[0,0],[9,0],[9,9],[0,9]],F='⚀⚁⚂⚃⚄⚅'.split('');
+const SAFE=new Set([0,13,26,39,8,21,34,47]);
+const LANE=[0,1,2,3].map(s=>[0,1,2,3,4].map(k=>[[1+k,7],[7,1+k],[13-k,7],[7,13-k]][s]));
+const TRACK=(()=>{let x=1,y=6;const o=[[x,y]],D={R:[1,0],L:[-1,0],U:[0,-1],D:[0,1],u:[1,-1],d:[1,1],l:[-1,1],k:[-1,-1]};
+ for(const c of 'RRRRu'+'UUUUU'+'RR'+'DDDDD'+'d'+'RRRRR'+'DD'+'LLLLL'+'l'+'DDDDD'+'LL'+'UUUUU'+'k'+'LLLLL'+'UU'){x+=D[c][0];y+=D[c][1];o.push([x,y])}return o})();
+let G=null,T=[],AC=null,S={n:4,cpu:[0,1,1,1],tiles:true,sound:true};
+const D=$('#dice'),B=$('#board');
+const later=(f,ms)=>{const id=setTimeout(()=>{T=T.filter(x=>x!==id);f()},ms);T.push(id)};
+const RM=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+const gi=(s,p)=>(OFF[s]+p)%52, cs=()=>G.seats[G.cur], msg=t=>$('#msg').textContent=t;
+new ResizeObserver(()=>B.style.setProperty('--u',B.clientWidth/15+'px')).observe(B);
+
+function snd(f,d){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state=='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+
+// Evenly spread special tiles over track indices, skipping safe/start squares
+function placeTiles(){const left={...CFG.tiles},ks=Object.keys(left),list=[];
+ while(ks.some(k=>left[k]>0))ks.forEach(k=>{if(left[k]>0){list.push(k);left[k]--}});
+ const m={},N=list.length;
+ list.forEach((t,i)=>{let g=Math.round(2+i*52/N)%52;while(SAFE.has(g)||m[g]!==undefined)g=(g+1)%52;m[g]=t});return m}
+
+function start(){T.forEach(clearTimeout);T=[];
+ const seats=[[0,2],[0,1,2],[0,1,2,3]][S.n-2];
+ G={seats,cpu:S.cpu.slice(),pos:{},sh:{},tk:{},cur:0,die:0,legal:[],sixes:0,extra:false,over:false,win:-1,phase:'',tiles:S.tiles?placeTiles():{}};
+ seats.forEach(s=>{G.pos[s]=[-1,-1,-1,-1];G.sh[s]=[0,0,0,0]});
+ build();$('#menu').hidden=true;$('#win').hidden=true;turn(false)}
+
+function build(){B.innerHTML='';
+ const add=(c,x,y,w,h,t)=>{const e=document.createElement('div');e.className=c;e.style.cssText=`left:${x*U}%;top:${y*U}%;width:${w*U}%;height:${h*U}%`;if(t)e.textContent=t;B.append(e);return e};
+ for(let s=0;s<4;s++){const[bx,by]=BASE[s];add('base s'+s+(G.seats.includes(s)?'':' off'),bx,by,6,6);
+  [[1,1],[3,1],[1,3],[3,3]].forEach(q=>add('slot',bx+q[0],by+q[1],1,1));add('em',bx+2,by+2,1,1,EL[s].i)}
+ TRACK.forEach(([x,y],g)=>{const s=OFF.indexOf(g),t=G.tiles[g];
+  const e=add('c'+(s>=0?' st s'+s:'')+(t?' t-'+t:''),x,y,1,1,t?TI[t][0]:s>=0?EL[s].i:SAFE.has(g)?'☆':'');if(t)e.title=TI[t][1]});
+ LANE.forEach((l,s)=>l.forEach(([x,y])=>add('c ln s'+s,x,y,1,1)));
+ add('nexus',6,6,3,3,'✦');
+ G.seats.forEach(s=>[0,1,2,3].forEach(k=>{const b=document.createElement('button');b.className='tk s'+s;b.textContent=EL[s].i;
+  b.setAttribute('aria-label',EL[s].n+' token '+(k+1));b.onclick=()=>pick(s,k);B.append(b);G.tk[s+'_'+k]=b}));
+ B.style.setProperty('--u',B.clientWidth/15+'px')}
+
+function xy(s,p,k){if(p<0){const[bx,by]=BASE[s];return[bx+1+(k%2)*2,by+1+(k>>1)*2]}
+ if(p<=50)return TRACK[gi(s,p)];if(p<FIN)return LANE[s][p-51];
+ const o=(k-1.5)*.25;return[[6.2,7+o],[7+o,6.2],[7.8,7+o],[7+o,7.8]][s]}
+
+function render(){const grp={},OF=[[-.15,-.15],[.15,.15],[.15,-.15],[-.15,.15]];
+ G.seats.forEach(s=>G.pos[s].forEach((p,k)=>{if(p>=0&&p<FIN)(grp[xy(s,p,k)+'']=grp[xy(s,p,k)+'']||[]).push(s+'_'+k)}));
+ G.seats.forEach(s=>G.pos[s].forEach((p,k)=>{let[x,y]=xy(s,p,k);const e=G.tk[s+'_'+k],g=grp[[x,y]+''];
+  if(p>=0&&p<FIN&&g&&g.length>1){const o=OF[g.indexOf(s+'_'+k)%4];x+=o[0];y+=o[1]}
+  e.style.left=x*U+'%';e.style.top=y*U+'%';e.classList.toggle('fin',p==FIN);e.classList.toggle('sh',!!G.sh[s][k]);
+  const mine=G.phase=='pick'&&s==cs()&&G.legal.includes(k);e.classList.toggle('go',mine);e.disabled=!mine||!!G.cpu[s]}))}
+
+function ui(){if(!G)return;render();
+ $('#bar').innerHTML=G.seats.map(s=>`<span class="chip s${s}${s==cs()&&!G.over?' on':''}">${EL[s].i} ${EL[s].n} ${G.cpu[s]?'🤖':'👤'} ${G.pos[s].filter(p=>p==FIN).length}/4</span>`).join('');
+ const ok=G.phase=='roll'&&!G.cpu[cs()]&&!G.over;D.disabled=!ok;D.classList.toggle('rdy',ok)}
+
+// ---- Turn flow: roll -> pick -> move -> land (capture, tile, bonus) -> finish (victory) -> end (extra turn / next player) ----
+function turn(again){G.phase='roll';G.die=0;G.legal=[];const s=cs();
+ msg(`${EL[s].n}'s turn${again?' (bonus roll)':''}. ${G.pos[s].every(p=>p<0)?'Roll a six to leave base.':'Roll the dice.'}`);ui();
+ if(G.cpu[s])later(()=>roll(true),800)}
+
+function roll(ai){if(!G||G.over||G.phase!='roll'||(!ai&&G.cpu[cs()]))return;
+ G.phase='rolling';ui();snd(300,.08);const d=1+Math.floor(R()*6),n=RM()?0:7;
+ for(let i=0;i<n;i++)later(()=>D.textContent=F[Math.floor(R()*6)],i*60);
+ later(()=>{G.die=d;D.textContent=F[d-1];afterRoll()},n*60+60)}
+
+const can=(s,k,d)=>{const p=G.pos[s][k];return p<0?d==6:p<FIN&&p+d<=FIN};
+
+function afterRoll(){const s=cs(),d=G.die;
+ if(d==6){if(++G.sixes>=CFG.sixLimit){msg('Three sixes in a row! Turn lost.');return later(next,1100)}}else G.sixes=0;
+ G.legal=[0,1,2,3].filter(k=>can(s,k,d));
+ if(!G.legal.length){msg(`${EL[s].n} rolled ${d}. No legal move.`);return later(end,1000)}
+ G.phase='pick';msg(`${EL[s].n} rolled ${d}. ${G.cpu[s]?'':'Choose a token to move.'}`);ui();
+ if(G.cpu[s])later(()=>pick(s,aiPick(s),true),900)}
+
+function pick(s,k,ai){if(!G||G.over||G.phase!='pick'||s!=cs()||!G.legal.includes(k)||(!ai&&G.cpu[s]))return;
+ G.phase='move';G.legal=[];const p=G.pos[s][k];G.sh[s][k]=0; // shield expires when the token moves again
+ G.pos[s][k]=p<0?0:p+G.die;snd(440,.06);ui();later(()=>land(s,k,0),RM()?50:350)}
+
+function land(s,k,ch){const p=G.pos[s][k],g=gi(s,p);let m='';
+ if(p<=50&&!SAFE.has(g))G.seats.forEach(o=>{if(o!=s)G.pos[o].forEach((q,j)=>{
+  if(q>=0&&q<=50&&gi(o,q)==g&&!G.sh[o][j]){G.pos[o][j]=-1;m+=`${EL[s].n} captured ${EL[o].n}! `;snd(150,.25);fx(TRACK[g][0],TRACK[g][1],s)}})});
+ if(p==FIN)m+=`${EL[s].n} token reached the Nexus!`;
+ else if(p<=50){const t=G.tiles[g];
+  if(t=='death'){G.pos[s][k]=-1;m+=`Chaos Rift! ${EL[s].n} lost a token!`;snd(110,.3)}
+  else if(t=='boost'){if(ch<CFG.chain&&p+2<=FIN){G.pos[s][k]=p+2;msg('Wind Boost! Move two extra spaces!');ui();snd(660,.1);return later(()=>land(s,k,ch+1),RM()?50:350)}
+   m+='Wind Boost fizzled (no room).'}
+  else if(t=='star'){G.extra=true;m+='Elemental Star! Roll again!';snd(880,.15)}
+  else if(t=='shield'){G.sh[s][k]=1;m+='Earth Guardian! Your token is protected!';snd(520,.15)}}
+ if(m)msg(m);ui();later(finish,m?900:250)}
+
+function finish(){const s=cs();
+ if(G.pos[s].every(p=>p==FIN)){G.over=true;G.win=s;G.phase='over';msg(`${EL[s].n} wins the game!`);ui();
+  [523,659,784,1047].forEach((f,i)=>later(()=>snd(f,.2),i*180));$('#wt').textContent=`${EL[s].i} ${EL[s].n} wins!`;$('#win').hidden=false;return}
+ end()}
+function end(){const x=G.die==6||G.extra;G.extra=false;x?turn(true):next()}
+function next(){G.sixes=0;G.extra=false;G.cur=(G.cur+1)%G.seats.length;turn(false)}
+
+function fx(x,y,s){if(RM())return;const ic=['🔥','🍃','💧','💨'][s];
+ for(let i=0;i<5;i++){const e=document.createElement('i');e.className='fx';e.textContent=ic;e.style.cssText=`left:${(x+.3)*U}%;top:${(y+.3)*U}%;--a:${i*72}deg`;B.append(e);setTimeout(()=>e.remove(),700)}}
+
+// ---- AI: scores legal moves, random jitter breaks ties ----
+function aiPick(s){const d=G.die;let best=-1e9,bk=G.legal[0];
+ G.legal.forEach(k=>{const p=G.pos[s][k],t=p<0?0:p+d;let v=t*.1+R()*4;
+  if(p<0)v+=30;if(t==FIN)v+=100;else if(t>50)v+=12;
+  if(t<=50){const g=gi(s,t);
+   if(!SAFE.has(g))G.seats.forEach(o=>o!=s&&G.pos[o].forEach((q,j)=>{if(q>=0&&q<=50&&gi(o,q)==g&&!G.sh[o][j])v+=60}));
+   const tt=G.tiles[g];if(tt=='death')v-=90;if(tt=='boost')v+=t+2<=FIN?18:0;if(tt=='star')v+=22;if(tt=='shield')v+=16}
+  if(v>best){best=v;bk=k}});return bk}
+
+// ---- Menu & controls ----
+function menu(){const A=[[0,2],[0,1,2],[0,1,2,3]][S.n-2];
+ $('#np').innerHTML=[2,3,4].map(n=>`<button class="${n==S.n?'sel':''}" data-n="${n}">${n} players</button>`).join('');
+ $('#sl').innerHTML=A.map(s=>`<button class="seat s${s}" data-s="${s}" style="width:100%">${EL[s].i} ${EL[s].n} — ${S.cpu[s]?'Computer 🤖':'Human 👤'}</button>`).join('')}
+$('#menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.n){S.n=+b.dataset.n;menu()}else if(b.dataset.s!==undefined){S.cpu[b.dataset.s]^=1;menu()}};
+$('#play').onclick=()=>{S.tiles=$('#st').checked;start()};
+$('#pa').onclick=start;
+const toMenu=()=>{if(G){G.over=true;G.phase='over'}T.forEach(clearTimeout);T=[];$('#win').hidden=true;$('#menu').hidden=false;menu()};
+$('#wm').onclick=toMenu;
+$('#mn').onclick=()=>{if(!G||G.over||confirm('Leave this game and return to the menu?'))toMenu()};
+$('#rs').onclick=()=>{if(G&&(G.over||confirm('Restart the game? Progress will be lost.')))start()};
+$('#sd').onclick=()=>{S.sound=!S.sound;$('#sd').textContent=S.sound?'🔊':'🔇'};
+D.onclick=()=>roll(false);
+addEventListener('keydown',e=>{if(!G||$('#menu').hidden===false)return;
+ if((e.key==' '||e.key=='r')&&document.activeElement.tagName!='BUTTON'){e.preventDefault();roll(false)}
+ if('1234'.includes(e.key)&&e.key)pick(cs(),+e.key-1,false)});
+menu();
+</script></body></html>
